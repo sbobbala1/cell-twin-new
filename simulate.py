@@ -34,6 +34,14 @@ import p08_mtor
 import p09_nakpump
 
 
+def _is_voxel_state(state):
+    return np.ndim(next(iter(state.values()))) > 0
+
+
+def _mean(value):
+    return float(np.mean(value))
+
+
 # ─────────────────────────────────────────────
 # SCENARIO CONTROLLER
 # Modify this to design new experiments.
@@ -73,7 +81,7 @@ def step(s, dt, t, scenario):
     # Clamp negatives before computing fluxes
     for k, v in s.items():
         if k != "hif1a":
-            s[k] = max(v, 0.0)
+            s[k] = np.maximum(v, 0.0)
 
     # ── P6 first — gates transport and fermentation ──
     f6  = p06_hif1a.compute(s, dt)
@@ -109,7 +117,7 @@ def step(s, dt, t, scenario):
     # Final clamps
     for k in s:
         if k != "hif1a":
-            s[k] = max(s[k], 0.0)
+            s[k] = np.maximum(s[k], 0.0)
     s["ATP"] = clamp(s["ATP"], 0.0, 8.0)
     s["ADP"] = clamp(s["ADP"], 0.0, 5.0)
 
@@ -119,11 +127,12 @@ def step(s, dt, t, scenario):
 # ─────────────────────────────────────────────
 # RUN
 # ─────────────────────────────────────────────
-def run(scenario="hypoxia", duration=DURATION, dt=DT):
-    state = initial_state()
+def run(scenario="hypoxia", duration=DURATION, dt=DT, voxel_shape=None, spatial=False, return_state=False):
+    state = initial_state(shape=voxel_shape, spatial=spatial)
     steps = int(duration / dt)
     times = np.linspace(0, duration, steps)
     keys  = list(state.keys())
+    voxel_mode = _is_voxel_state(state)
     history = {k: np.zeros(steps) for k in keys}
     """
     history = {
@@ -137,14 +146,27 @@ def run(scenario="hypoxia", duration=DURATION, dt=DT):
     for i in range(steps):
         t = i * dt
         for k in keys:
-            history[k][i] = state[k]
+            history[k][i] = _mean(state[k]) if voxel_mode else state[k]
         state = step(state, dt, t, scenario)
         if i % PRINT_EVERY == 0:
-            print(f"  t={t:6.2f} min | ATP={state['ATP']:.3f} | "
-                  f"O2={state['O2']:.4f} | lac={state['lactate']:.3f} | "
-                  f"HIF={state['hif1a']:.3f} | Na_cyt={state['Na_cyt']:.2f}")
+            print(f"  t={t:6.2f} min | ATP={_mean(state['ATP']):.3f} | "
+                  f"O2={_mean(state['O2']):.4f} | lac={_mean(state['lactate']):.3f} | "
+                  f"HIF={_mean(state['hif1a']):.3f} | Na_cyt={_mean(state['Na_cyt']):.2f}")
 
+    if return_state:
+        return times, history, state
     return times, history
+
+
+def run_3d(scenario="hypoxia", shape=(12, 12, 12), duration=DURATION, dt=DT):
+    return run(
+        scenario=scenario,
+        duration=duration,
+        dt=dt,
+        voxel_shape=shape,
+        spatial=True,
+        return_state=True,
+    )
 
 
 if __name__ == "__main__":

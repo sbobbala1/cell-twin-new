@@ -17,11 +17,12 @@ Stoichiometry
 
 from constants import ATP_DEMAND_BASE, KM_DEMAND_ATP
 from helpers import mm
+import numpy as np
 
 
 def compute(s, dt):
     v = ATP_DEMAND_BASE * mm(s["ATP"], KM_DEMAND_ATP) * dt
-    v = min(v, s["ATP"])
+    v = np.minimum(v, s["ATP"])
     return {"v_demand": v}
 
 

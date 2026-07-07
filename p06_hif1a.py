@@ -27,13 +27,14 @@ NOTE: This module must be called FIRST each step because its output
 
 from constants import HIF_RISE_RATE, HIF_FALL_RATE, HIF_O2_THRESH
 from helpers import clamp
+import numpy as np
 
 
 def compute(s, dt):
-    if s["O2"] < HIF_O2_THRESH:
-        delta = HIF_RISE_RATE * (1.0 - s["hif1a"]) * dt
-    else:
-        delta = -HIF_FALL_RATE * s["hif1a"] * dt
+    low_o2 = s["O2"] < HIF_O2_THRESH
+    rise = HIF_RISE_RATE * (1.0 - s["hif1a"]) * dt
+    fall = -HIF_FALL_RATE * s["hif1a"] * dt
+    delta = np.where(low_o2, rise, fall)
     new_hif = clamp(s["hif1a"] + delta, 0.0, 1.0)
     return {"hif1a": new_hif}
 

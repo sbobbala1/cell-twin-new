@@ -28,6 +28,7 @@ from constants import (
     NA_LEAK_RATE, HIF_MAX_GLUT,
 )
 from helpers import mm
+import numpy as np
 
 
 def compute(s, dt, params):
@@ -49,8 +50,8 @@ def compute(s, dt, params):
     cyt_drive = mm(s["glucose"], KM_GLUT_GLU)
     v_glut = VMAX_GLUT * glut_scale * (ext_drive - cyt_drive) * dt
     # GLUT is reversible: positive flux imports, negative flux exports.
-    v_glut = min(v_glut, max(params["glucose_ext"], 0.0))
-    v_glut = max(v_glut, -s["glucose"])
+    v_glut = np.minimum(v_glut, np.maximum(params["glucose_ext"], 0.0))
+    v_glut = np.maximum(v_glut, -s["glucose"])
 
     v_o2   = VMAX_O2_IMPORT * mm(params["O2_ext"], KM_O2_EXT) * dt
 

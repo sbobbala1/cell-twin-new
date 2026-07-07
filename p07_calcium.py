@@ -20,16 +20,17 @@ Stoichiometry
 """
 
 from constants import CA_LEAK_RATE, CA_PUMP_RATE, CA_REST
+import numpy as np
 
 
 def compute(s, dt):
     v_leak = CA_LEAK_RATE * dt
-    v_pump = CA_PUMP_RATE * max(s["Ca_cyt"] - CA_REST, 0.0) * dt
-    v_pump = min(v_pump, s["Ca_cyt"])
+    v_pump = CA_PUMP_RATE * np.maximum(s["Ca_cyt"] - CA_REST, 0.0) * dt
+    v_pump = np.minimum(v_pump, s["Ca_cyt"])
     return {"v_ca_leak": v_leak, "v_ca_pump": v_pump}
 
 
 def apply(s, fluxes):
     s["Ca_cyt"] += fluxes["v_ca_leak"] - fluxes["v_ca_pump"]
-    s["Ca_cyt"]  = max(s["Ca_cyt"], 0.0)
+    s["Ca_cyt"]  = np.maximum(s["Ca_cyt"], 0.0)
     return s

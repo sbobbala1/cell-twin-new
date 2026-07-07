@@ -22,12 +22,13 @@ from constants import (
     ATP_PER_GLYC, PYR_PER_GLYC,
 )
 from helpers import mm
+import numpy as np
 
 
 def compute(s, dt):
     v_glyc = VMAX_GLYC * mm(s["glucose"], KM_GLYC_GLU) * mm(s["ADP"], KM_GLYC_ADP) * dt
-    v_glyc = min(v_glyc, s["glucose"])   # can't consume more glucose than available
-    v_glyc = min(v_glyc, s["ADP"] / ATP_PER_GLYC)   # ATP production is ADP-limited
+    v_glyc = np.minimum(v_glyc, s["glucose"])   # can't consume more glucose than available
+    v_glyc = np.minimum(v_glyc, s["ADP"] / ATP_PER_GLYC)   # ATP production is ADP-limited
     return {"v_glyc": v_glyc}
 
 

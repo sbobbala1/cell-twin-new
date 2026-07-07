@@ -31,14 +31,17 @@ Stoichiometry
 
 from constants import VMAX_RIBO, KM_ATP_RIBO, KM_AA, ATP_PER_AA, NORMAL_ATP
 from helpers import clamp, mm
+import numpy as np
 
 
 def compute(s, dt):
     mtor     = clamp(s["ATP"] / NORMAL_ATP, 0.0, 1.0)
     v_theory = VMAX_RIBO * mtor * mm(s["ATP"], KM_ATP_RIBO) * mm(s["amino_acids"], KM_AA) * dt
-    v_actual = min(v_theory,
-                   s["ATP"] / ATP_PER_AA,
-                   s["amino_acids"])
+    v_actual = np.minimum.reduce([
+        v_theory,
+        s["ATP"] / ATP_PER_AA,
+        s["amino_acids"],
+    ])
     return {"v_synth": v_actual}
 
 

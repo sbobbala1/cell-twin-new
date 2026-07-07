@@ -24,14 +24,15 @@ from constants import (
     ATP_PER_OXPHOS, O2_PER_OXPHOS,
 )
 from helpers import mm
+import numpy as np
 
 
 def compute(s, dt):
     v = VMAX_OXPHOS * mm(s["pyruvate"], KM_OXPHOS_PYR) * mm(s["O2"], KM_OXPHOS_O2) * dt
     # Substrate clamps — cannot consume more than available
-    v = min(v, s["pyruvate"])
-    v = min(v, s["O2"] / max(O2_PER_OXPHOS, 1e-9))
-    v = min(v, s["ADP"] / max(ATP_PER_OXPHOS, 1e-9))
+    v = np.minimum(v, s["pyruvate"])
+    v = np.minimum(v, s["O2"] / max(O2_PER_OXPHOS, 1e-9))
+    v = np.minimum(v, s["ADP"] / max(ATP_PER_OXPHOS, 1e-9))
     return {"v_oxphos": v}
 
 

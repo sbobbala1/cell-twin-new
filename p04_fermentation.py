@@ -24,6 +24,7 @@ from constants import (
     VMAX_FERM, KM_FERM_PYR, KM_FERM_O2_INH, HIF_MAX_FERM,
 )
 from helpers import mm
+import numpy as np
 
 
 def compute(s, dt, v_oxphos):
@@ -35,7 +36,7 @@ def compute(s, dt, v_oxphos):
 
     v = VMAX_FERM * ferm_scale * mm(s["pyruvate"], KM_FERM_PYR) * o2_inhibition * dt
     # Pyruvate remaining after OxPhos
-    v = min(v, max(s["pyruvate"] - v_oxphos, 0.0))
+    v = np.minimum(v, np.maximum(s["pyruvate"] - v_oxphos, 0.0))
     return {"v_ferm": v}
 
 

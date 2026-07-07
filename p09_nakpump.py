@@ -30,6 +30,7 @@ Stoichiometry
 
 from constants import VMAX_PUMP, KM_ATP_PUMP, KM_NA, KM_K
 from helpers import mm, hill
+import numpy as np
 
 
 def compute(s, dt, pump_activity=1.0):
@@ -38,10 +39,12 @@ def compute(s, dt, pump_activity=1.0):
     k_drive   = hill(s["K_ext"],  KM_K,  2)
 
     v = VMAX_PUMP * pump_activity * atp_drive * na_drive * k_drive * dt
-    v = min(v,
-            s["ATP"],
-            s["Na_cyt"] / 3.0,
-            s["K_ext"]  / 2.0)
+    v = np.minimum.reduce([
+        v,
+        s["ATP"],
+        s["Na_cyt"] / 3.0,
+        s["K_ext"]  / 2.0,
+    ])
     return {"v_pump": v}
 
 
